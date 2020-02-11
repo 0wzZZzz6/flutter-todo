@@ -16,11 +16,10 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
   List<String> _todoItems = [];
+  final _editController = TextEditingController();
 
   void _addTodoItem(todo) {
-    setState(() {
-      _todoItems.add(todo);
-    });
+    setState(() => _todoItems.add(todo));
   }
 
   void _removeTodoItem(int index) {
@@ -58,11 +57,37 @@ class _TodoListState extends State<TodoList> {
 
   Widget _buildTodoItem(String todo, int index) {
     return ListTile(
-      title: Text(todo),
-      onTap: () {
-        _promptRemoveTodoItem(index);
-      },
-    );
+        title: Text(todo),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                _pushEditTodoScreen(todo, index);
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                _promptRemoveTodoItem(index);
+              },
+            ),
+          ],
+        ));
+  }
+
+  void _pushEditTodoScreen(String todo, int index) {
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Edit todo')),
+        body: TextField(
+          autofocus: true,
+          onSubmitted: (val) {},
+        ),
+      );
+    }));
   }
 
   void _pushAddTodoScreen() {
