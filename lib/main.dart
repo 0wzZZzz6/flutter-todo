@@ -39,10 +39,11 @@ class _TodoListState extends State<TodoList> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
               FlatButton(
-                child: Text('Mark as done'),
-                onPressed: () =>
-                    {_removeTodoItem(index), Navigator.of(context).pop()},
-              )
+                  child: new Text('MARK AS DONE'),
+                  onPressed: () {
+                    _removeTodoItem(index);
+                    Navigator.of(context).pop();
+                  })
             ],
           );
         });
@@ -59,9 +60,7 @@ class _TodoListState extends State<TodoList> {
     return ListTile(
       title: Text(todo),
       onTap: () {
-        setState(() {
-          _todoItems.removeAt(index);
-        });
+        _promptRemoveTodoItem(index);
       },
     );
   }
