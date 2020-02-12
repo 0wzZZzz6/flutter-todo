@@ -16,7 +16,30 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
   List<String> _todoItems = [];
+  var _filtered;
   final _editController = TextEditingController();
+  final _searchController = TextEditingController();
+  Icon cusIcon = Icon(Icons.search);
+  Widget cusSearchBar = Text('AppBar');
+  String filter;
+
+  @override
+  initState() {
+    _searchController.addListener(() {
+      setState(() {
+        filter = _searchController.text;
+      });
+
+      _filtered = _todoItems.map((item) => item);
+      print(_filtered);
+    });
+
+    @override
+    void dispose() {
+      _searchController.dispose();
+      super.dispose();
+    }
+  }
 
   void _addTodoItem(todo) {
     setState(() => _todoItems.add(todo));
@@ -31,14 +54,15 @@ class _TodoListState extends State<TodoList> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Mark ${_todoItems[index]} as done?'),
+            title: Text('Delete ${_todoItems[index]}?'),
             actions: <Widget>[
               FlatButton(
                 child: Text('CANCEL'),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               FlatButton(
-                  child: new Text('MARK AS DONE'),
+                  child: new Text('Delete'),
+                  color: Colors.red,
                   onPressed: () {
                     _removeTodoItem(index);
                     Navigator.of(context).pop();
@@ -49,10 +73,52 @@ class _TodoListState extends State<TodoList> {
   }
 
   Widget _buildTodoList() {
-    return new ListView.builder(itemBuilder: (context, index) {
-      if (index < _todoItems.length)
-        return _buildTodoItem(_todoItems[index], index);
-    });
+    return new ListView.builder(
+      itemBuilder: (context, index) {
+        return filter == null || filter == ""
+            ? ListTile(
+                title: Text(_todoItems[index]),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        _pushEditTodoScreen(_todoItems[index], index);
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        _promptRemoveTodoItem(index);
+                      },
+                    ),
+                  ],
+                ))
+            : ListTile(
+                title: Text(_filtered[index]),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        _pushEditTodoScreen(_todoItems[index], index);
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () {
+                        _promptRemoveTodoItem(index);
+                      },
+                    ),
+                  ],
+                ));
+      },
+      itemCount: _todoItems.length,
+    );
   }
 
   Widget _buildTodoItem(String todo, int index) {
@@ -79,12 +145,17 @@ class _TodoListState extends State<TodoList> {
   }
 
   void _pushEditTodoScreen(String todo, int index) {
+    _editController.text = todo;
     Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
       return Scaffold(
         appBar: AppBar(title: Text('Edit todo')),
         body: TextField(
+          controller: _editController,
           autofocus: true,
-          onSubmitted: (val) {},
+          onSubmitted: (val) {
+            _todoItems[index] = val;
+            Navigator.of(context).pop();
+          },
         ),
       );
     }));
@@ -112,9 +183,32 @@ class _TodoListState extends State<TodoList> {
 
   @override
   Widget build(BuildContext context) {
+    initState();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Todo List'),
+        title: cusSearchBar,
+        actions: <Widget>[
+          IconButton(
+            icon: cusIcon,
+            onPressed: () {
+              setState(() {
+                if (this.cusIcon.icon == Icons.search) {
+                  this.cusIcon = Icon(Icons.cancel);
+                  this.cusSearchBar = TextField(
+                    controller: _searchController,
+                    onChanged: (text) {
+                      print(_todoItems.contains(text));
+                    },
+                  );
+                } else {
+                  _searchController.text = '';
+                  cusIcon = Icon(Icons.search);
+                  cusSearchBar = Text('AppBar');
+                }
+              });
+            },
+          )
+        ],
       ),
       body: _buildTodoList(),
       floatingActionButton: FloatingActionButton(
